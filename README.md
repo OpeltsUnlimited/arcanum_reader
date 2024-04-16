@@ -6,6 +6,12 @@ Interprets and shows data for the Game [arcanum](https://mathiashjelm.gitlab.io/
 
 Either as a local static html or to this projects wiki page.
 
+# Status/Roadmap:
+
+Basic Html for most modules
+Missing: interpret data to links betwen modules/entrys
+"Hall" data missing
+
 # prerequesits
 
 run in Windows-Subsystem-for-Linux
