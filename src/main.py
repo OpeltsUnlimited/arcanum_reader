@@ -1,6 +1,10 @@
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from git_helper import MyRepo
 import json
+from arcanum_root import Arcanum_root
+from to_html import ToHtml
+from os import path
+from my_html_file import My_html_file
 
 example_text='''
 Example:
@@ -28,11 +32,11 @@ if __name__ == "__main__":
 
     sub_local = sub.add_parser("local", help="generate local/static webpage")
     sub_local.add_argument("-o", "--output", nargs=1, help="output directory", default="./public")
-    sub_local.add_argument("-r", "--root", nargs=1, help="prepended to generated links/paths, usefull for nested-routes")
+    sub_local.add_argument("-r", "--root", nargs=1, help="prepended to generated links/paths, usefull for nested-routes", default="")
     
     sub_markup = sub.add_parser("markup", help="generate wiki/markup into a specified folder")
     sub_markup.add_argument("-o", "--output", nargs=1, help="output directory", default="")
-    sub_markup.add_argument("-r", "--root", nargs=1, help="prepended to generated links/paths, usefull for nested-routes")
+    sub_markup.add_argument("-r", "--root", nargs=1, help="prepended to generated links/paths, usefull for nested-routes", default="")
 
     args = parser.parse_args()
 
@@ -91,14 +95,61 @@ if __name__ == "__main__":
             if arcanumtesting_repo.getCurrentCommit() != last_local["testing"]:
                 args.testing=True
 
+        arcanum_output = path.join(args.output,"arcanum")
+        arcanum_root = f"{args.root}/arcanum"
+        testing_output = path.join(args.output,"testing")
+        testing_root = f"{args.root}/testing"
+
         if args.arcanum:
             print("Do Arcanum, local")
-            last_local["arcanum"] = arcanum_repo.getCurrentCommit()
+            try:
+                arcanum_data = Arcanum_root()
+                arcanum_data.read("arcanum/data")
+
+                print("as")
+                convert = ToHtml(arcanum_output,arcanum_root)
+                print("as")
+                convert.toHtml(arcanum_data)
+
+                last_local["arcanum"] = arcanum_repo.getCurrentCommit()
+            except Exception as exp: # i only want to skip the set-last part in case of a exeption, but a catch/exept is mandatory  
+                raise exp # so i just re-trow it (altough bad practice, you schouldent catch if not used)
+
         if args.testing:
             print("Do Testing, local")
             last_local["testing"] = arcanumtesting_repo.getCurrentCommit()
-        
 
+        # root index page
+        arcanum_exsists = path.isdir(arcanum_output)
+        testing_exsists = path.isdir(testing_output)
+
+        index_file = My_html_file("index", args.output)
+        list = index_file.content.add("ul")
+
+        if arcanum_exsists:
+            list_element = list.add("li")
+            link = list_element.add("a")
+            link.attrib["href"]=arcanum_root
+            link.text = "Arcanum"
+        if testing_exsists:
+            list_element = list.add("li")
+            link = list_element.add("a")
+            link.attrib["href"]=f"{args.root}/testing"
+            link.text = "Testing"
+
+        if arcanum_exsists and testing_exsists:
+            pass
+        elif arcanum_exsists: # only arcanum exsists -> Redirect
+            meta = index_file.addMeta()
+            meta.attrib["http-equiv"]="refresh"
+            meta.attrib["content"]=f"0 url={arcanum_root}"
+        else:
+            meta = index_file.addMeta()
+            meta.attrib["http-equiv"]="refresh"
+            meta.attrib["content"]=f"0 url={testing_root}"
+        
+        index_file.write()
+        
     # check for markup
     if 'markup' in args.operation:
         if args.check:
