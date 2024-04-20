@@ -71,7 +71,7 @@ class ToHtml:
                 cell = table_line.add("td")
                 if head in entris[entry].data:
                     dat = entris[entry].data[head]
-                    cell.text = html.escape(str(dat))
+                    cell.text = html.escape(str(dat), quote=False)
 
         index_file.write()
         
