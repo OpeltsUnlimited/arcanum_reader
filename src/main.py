@@ -106,9 +106,7 @@ if __name__ == "__main__":
                 arcanum_data = Arcanum_root()
                 arcanum_data.read("arcanum/data")
 
-                print("as")
                 convert = ToHtml(arcanum_output,arcanum_root)
-                print("as")
                 convert.toHtml(arcanum_data)
 
                 last_local["arcanum"] = arcanum_repo.getCurrentCommit()
