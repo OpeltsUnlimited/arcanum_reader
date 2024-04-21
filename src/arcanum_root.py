@@ -14,7 +14,7 @@ class Arcanum_root:
             "tasks": Arcanum_base("tasks"),
             "homes": Arcanum_base("homes"),
             "furniture": Arcanum_base("furniture"),
-            "skills": Arcanum_base("skills"),
+            "skills": Arcanum_skills("skills"),
             "states": Arcanum_base("states"),
             "player": Arcanum_base("player"),
             "spells": Arcanum_base("spells"),
@@ -39,6 +39,10 @@ class Arcanum_root:
             "clashes": Arcanum_base("clashes"),
         }
 
+    def addError(self, err):
+        self.__error.append(err)
+        
+
     def groups(self):
         return self.__group.keys()
     
@@ -57,6 +61,9 @@ class Arcanum_root:
             self.__read_core(path.join(data_dir, core+".json"), core);
         for modules in last_run["modules"]:
             self.__read_module(path.join(data_dir,"modules", modules+".json"));
+        for key, object in self.__group.items():
+            object.process_entrys(self)
+
 
     def __read_core(self, core_file, type):
         with open(core_file, 'r') as file:
@@ -88,7 +95,7 @@ class Arcanum_root:
         else:
             missingString = f"missing group \"{type}\" from {file}]"
             if not missingString in self.__error:
-                self.__error.append(missingString)
+                self.addError(missingString)
         #print(element)
 
 

@@ -1,5 +1,6 @@
 from arcanum_root import Arcanum_root
 from arcanum_objects import Arcanum_base
+from arcanum_entrys import *
 from my_html_file import My_html_file
 from os import path, makedirs
 import xml.etree.ElementTree as ElementTree
@@ -54,24 +55,46 @@ class ToHtml:
         table = index_file.content.add("table")
         table_head = table.add("tr")
 
-        header = set()
-        entris = data.entrys()
-        for entry in entris:
-            header = header.union(entris[entry].data.keys())
-        header = list(header)
+        header = data.getHeaderList()
             
         for head in header:
             head_entry = table_head.add("th")
             head_entry.text = head
 
-        for entry in entris:
+        for key in data.keys():
             table_line = table.add("tr")
 
             for head in header:
                 cell = table_line.add("td")
-                if head in entris[entry].data:
-                    dat = entris[entry].data[head]
-                    cell.text = html.escape(str(dat), quote=False)
+                dat = data.data(key, head)
+                self.dataToHtml(cell, dat)
 
         index_file.write()
+
+    def dataToHtml(self, target, data):
+        type_dict = {
+            type(None): lambda y, x: "",
+            arcanum_json: self.jsonToHtml,
+            arcanum_TEST: self.jsonToHtml,
+            arcanum_lines: self.linesToHtml,
+            arcanum_text: self.textToHtml,
+        }
+
+        if type(data) in type_dict:
+            return type_dict[type(data)](target, data)
+        else:
+            print("missed", type(data), arcanum_json)
+            return str(type(data))
         
+    def jsonToHtml(self, target, json):
+         target.text = str(json)
+        
+    def linesToHtml(self, target, lines):
+        for line in lines.lines:
+            li = target.add("br")
+            self.dataToHtml(li, line)
+
+    def textToHtml(self, target, text):
+        if text.bold:
+            target = target.add("b")
+        target.text = text.text
